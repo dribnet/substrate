@@ -5,14 +5,15 @@
 
 // p5.js port by @dribnet July 2021
 
-const canvasWidth = 960;
-const canvasHeight = 500;
-
-let dimx = canvasWidth;
-let dimy = canvasHeight;
+let dimx = 0;
+let dimy = 0;
 let num = 0;
 // maxnum value interpolated between "medium" and "large"
-let maxnum = 175;
+let maxnum = 0;
+
+       // * small:  250x250, maxnum=100  625     2.5
+       // * medium: 500x500, maxnum=150  1666    
+       // * large:  900x900, maxnum=200  4050
 
 // grid of cracks
 let cgrid = [];
@@ -22,12 +23,7 @@ let cracks = [];
 let sands = [];
 
 function setup() {
-  let can = createCanvas(canvasWidth, canvasHeight);
-  can.parent('canvasContainer');  
-
-  cgrid = Array(dimx*dimy).fill(0);
-  cracks = [];
-
+  createCanvas(windowWidth, windowHeight);
   begin();
 }
 
@@ -42,13 +38,16 @@ function mousePressed() {
   begin();
 }
 
+function windowResized() {
+  // print("resize to", windowWidth, windowHeight);
+  resizeCanvas(windowWidth, windowHeight);
+  begin();
+}
+
 // added by dribnet for screen caps
 function keyTyped() {
   if (key == '!') {
-    saveBlocksImages();
-  }
-  else if (key == '@') {
-    saveBlocksImages(true);
+    saveScreenShot(dimx, dimy);
   }
 }
 
@@ -65,6 +64,22 @@ function makeCrack() {
 
 
 function begin() {
+  dimx = windowWidth;
+  dimy = windowHeight;
+
+  // given W and H, maxnum can be approx as 5.5 x ^ 0.53 where x = (W+H)/2
+  // here's a table of what that looks like for jared's given three sizes
+       // * small:  250x250, maxnum=100 (computed: 5.5*250^0.53 = 103)
+       // * medium: 500x500, maxnum=150 (computed: 5.5*500^0.53 = 148)
+       // * large:  900x900, maxnum=200 (computed: 5.5*900^0.53 = 202)
+  // if you can fit the curve better, let me know :-)
+  // PS: thanks for nothing GPT4 https://chat.openai.com/share/cc4da1ad-98f9-44aa-8924-c14bdd096f42
+
+  maxnum = 5.5 * Math.pow((dimx+dimy)/2, 0.53);
+
+  cgrid = Array(dimx*dimy).fill(0);
+  cracks = [];
+
   // erase crack grid
   for (let y=0; y<dimy; y++) {
     for (let x=0; x<dimx; x++) {
